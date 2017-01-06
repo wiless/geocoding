@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -34,7 +35,7 @@ import (
 )
 
 var (
-	apiKey       = flag.String("key", "COPY_PASTE_YOUR_API_KEY_FROM_GOOGLE_CONSOLE", "API Key for using Google Maps API.")
+	apiKey       = flag.String("key", "", "API Key for using Google Maps API.")
 	clientID     = flag.String("client_id", "", "ClientID for Maps for Work API access.")
 	signature    = flag.String("signature", "", "Signature for Maps for Work API access.")
 	address      = flag.String("address", "", "The street address that you want to geocode, in the format used by the national postal service of the country concerned.")
@@ -73,6 +74,11 @@ type Record struct {
 func main() {
 	flag.Parse()
 
+	bytes, er := ioutil.ReadFile("mykey")
+	if er == nil {
+		*apiKey = string(bytes)
+
+	}
 	var err error
 	if *apiKey != "" {
 		client, err = maps.NewClient(maps.WithAPIKey(*apiKey))
@@ -83,9 +89,14 @@ func main() {
 	}
 	check(err)
 
-	src, _ := os.Open("kerela.csv")
+	src, err := os.Open("kerela.csv")
 
-	fd, _ := os.Create("AP.csv")
+	check(err)
+
+	fd, err := os.OpenFile("AP.csv", os.O_RDWR|os.O_APPEND, 0660)
+
+	check(err)
+
 	// csvw := csv.NewWriter(fd)
 	// writer := csvutil.NewWriter(fd, nil)
 
@@ -289,7 +300,7 @@ func Area(bound maps.LatLngBounds) float64 {
 	p4.Lng = p2.Lng
 	height := Distance(p1, p3)
 	width := Distance(p1, p4)
-	fmt.Println("Width, Height ", height, width)
+	// fmt.Println("Width, Height ", height, width)
 	return height * width
 
 }
