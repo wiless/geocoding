@@ -28,7 +28,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bmatsuo/csvutil"
 	"github.com/kr/pretty"
 	"golang.org/x/net/context"
 	"googlemaps.github.io/maps"
@@ -89,11 +88,11 @@ func main() {
 	}
 	check(err)
 
-	src, err := os.Open("kerela.csv")
+	src, err := os.Open("kkinput.csv")
 
 	check(err)
 
-	fd, err := os.OpenFile("AP.csv", os.O_RDWR|os.O_APPEND, 0660)
+	fd, err := os.OpenFile("KK.csv", os.O_RDWR|os.O_APPEND, 0660)
 
 	check(err)
 
@@ -106,6 +105,11 @@ func main() {
 	rd.TrailingComma = true
 	indx := 1
 	for {
+
+		if indx == 1 {
+			indx++
+			continue
+		}
 		record, err := rd.Read()
 		if err == io.EOF {
 			break
@@ -124,7 +128,7 @@ func main() {
 		// parseResultType(*resultType, r)
 		// parseLocationType(*locationType, r)
 
-		rowstr := getRecord(record[0])
+		rowstr := getRecord(record[1], indx)
 		log.Printf("%v", rowstr)
 		wr.Write(rowstr)
 		wr.Flush()
@@ -135,7 +139,7 @@ func main() {
 	// pretty.Println(resp)
 }
 
-func getRecord(name string) []string {
+func getRecord(name string, id int) []string {
 
 	r := &maps.GeocodingRequest{
 		Address:  *address,
@@ -153,17 +157,18 @@ func getRecord(name string) []string {
 	resp, err := client.Geocode(context.Background(), r)
 	// check(err)
 	if err != nil {
-		log.Println("Some Error ")
+		log.Println("Error ", err, name)
 	}
 
 	if len(resp) > 1 {
 		log.Printf("%s : MORE THAN ONE RESPONSE %d", name, len(resp))
 	}
-	var rec Record
+	// var rec Record
+	var results []string
+	FIELDS := 5
 	for i, r := range resp {
 		_ = i
 
-		rec = Record{}
 		pretty.Println("AddressComponents", r.AddressComponents)
 		// fmt.Printf("\n %d : FormattedAddress %#v", i, r.FormattedAddress)
 		// pretty.Println("Geometry", r.Geometry)
@@ -174,16 +179,25 @@ func getRecord(name string) []string {
 		// pretty.Println("\n======================================= ")
 		// var record []string
 
-		rec.Location = fmt.Sprintf("%s", r.Geometry.Location.String())
-		rec.Types = fmt.Sprintf("%s", r.Types)
-		rec.FormattedAddress = r.FormattedAddress
-		rec.Area = Area(r.Geometry.Viewport)
-		row := csvutil.FormatRow(rec)
-		return row.Fields
+		// rec.Location = fmt.Sprintf("%s", r.Geometry.Location.String())
+		// rec.Types = fmt.Sprintf("%s", r.Types)
+		// rec.FormattedAddress = r.FormattedAddress
+		// rec.Area = Area(r.Geometry.Viewport)
+		// row := csvutil.FormatRow(rec)
+		results = append(results, fmt.Sprintf("%d", id))
+		results = append(results, r.FormattedAddress)
+		results = append(results, strings.Join(r.Types, ","))
+		results = append(results, r.Geometry.Location.String())
+		results = append(results, fmt.Sprintf("%f", Area(r.Geometry.Viewport)))
+
+		return results
 	}
-	rec.Location = "NIL"
-	row := csvutil.FormatRow(rec)
-	return row.Fields
+	// rec.Location = "NIL"
+	// row := csvutil.FormatRow(rec)
+	empty := make([]string, FIELDS)
+	empty[0] = fmt.Sprintf("%d", id)
+	empty[1] = "NIL"
+	return empty
 }
 
 func parseComponents(components string, r *maps.GeocodingRequest) {
