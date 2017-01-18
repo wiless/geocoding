@@ -24,16 +24,13 @@ func main() {
 	// fmt.Println(Distance(reflat, reflat), "IS NAN ? ")
 	// fmt.Println(Distance(reflat, reflat2), "IS NAN ? ")
 
-	GPMAP := ReadGPTable("goaGP.csv")
+	GPMAP := ReadGPTable("AgraGP.csv")
 
 	GPMAP.ProcessNeighbours()
 
-	VLMAP := ReadVillageTable("goaVillage.csv")
-	VLMAP.ProcessVillageDistances(GPMAP)
-
 	{
 		// Dump GP to GP stats
-		wd, _ := os.Create("goaGP2GP.csv")
+		wd, _ := os.Create("AgraGP2GP.csv")
 		fmt.Fprintf(wd, "GPID, ClosestGP,ClosestGPdist, NGP1, NG2 , NGDist1, NGDist2")
 		for k, g := range GPMAP {
 			if g.IsValid {
@@ -43,15 +40,19 @@ func main() {
 		fmt.Println()
 
 	}
-	{
-		// Dump Village Stats
-		wd, _ := os.Create("goaStatistics.csv")
-		fmt.Fprintf(wd, "VillageID, AdminGP ,AdminDistance, ClosestGP,ClosestGPdist, NGP1, NG2 , NGDist1, NGDist2")
-		for k, v := range VLMAP {
-			fmt.Fprintf(wd, "\n%d,%d,%f,%d,%f,%s,%s", k, v.AdminGP, v.AdminDist, v.ClosestGP, v.ClosestGPdistance, v.Neighbours.ToCSVStr(), v.distance.ToCSVStr())
-		}
-		fmt.Println()
-	}
+
+	// VLMAP := ReadVillageTable("goaVillage.csv")
+	// VLMAP.ProcessVillageDistances(GPMAP)
+
+	// {
+	// 	// Dump Village Stats
+	// 	wd, _ := os.Create("goaStatistics.csv")
+	// 	fmt.Fprintf(wd, "VillageID, AdminGP ,AdminDistance, ClosestGP,ClosestGPdist, NGP1, NG2 , NGDist1, NGDist2")
+	// 	for k, v := range VLMAP {
+	// 		fmt.Fprintf(wd, "\n%d,%d,%f,%d,%f,%s,%s", k, v.AdminGP, v.AdminDist, v.ClosestGP, v.ClosestGPdistance, v.Neighbours.ToCSVStr(), v.distance.ToCSVStr())
+	// 	}
+	// 	fmt.Println()
+	// }
 
 	str := `importdata goaStatistics.csv;
 	vdata=ans.data;
@@ -284,8 +285,9 @@ func ReadGPTable(fname string) (result GPmap) {
 			break
 		}
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(record, err)
 		}
+		log.Println(record)
 		var gpinfo GPInfo
 		gpinfo.IsValid = true
 		gpinfo.GPID, _ = strconv.Atoi(record[0])

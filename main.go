@@ -167,7 +167,7 @@ func getRecord(name string, srno, gpcode int) []string {
 	}
 	// var rec Record
 	var results []string
-	FIELDS := 6
+	FIELDS := 7
 	for i, r := range resp {
 		_ = i
 
@@ -186,12 +186,15 @@ func getRecord(name string, srno, gpcode int) []string {
 		// rec.FormattedAddress = r.FormattedAddress
 		// rec.Area = Area(r.Geometry.Viewport)
 		// row := csvutil.FormatRow(rec)
-		results = append(results, fmt.Sprintf("%d", srno))
+		results = append(results, fmt.Sprintf("%d", gpcode))
 		results = append(results, r.FormattedAddress)
 		results = append(results, strings.Join(r.Types, ","))
-		results = append(results, r.Geometry.Location.String())
+		results = append(results, fmt.Sprintf("%d", srno))
+
+		results = append(results, fmt.Sprintf("%f", r.Geometry.Location.Lat))
+		results = append(results, fmt.Sprintf("%f", r.Geometry.Location.Lng))
+
 		results = append(results, fmt.Sprintf("%f", Area(r.Geometry.Viewport)))
-		results = append(results, fmt.Sprintf("%d", gpcode))
 
 		return results
 	}
