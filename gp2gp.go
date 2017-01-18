@@ -24,13 +24,16 @@ func main() {
 	// fmt.Println(Distance(reflat, reflat), "IS NAN ? ")
 	// fmt.Println(Distance(reflat, reflat2), "IS NAN ? ")
 
-	GPMAP := ReadGPTable("AgraGP.csv")
+	inputFname := "AgraGP.csv"
+	oututFname := "GP2GP" + inputFname
+	GPMAP := ReadGPTable(inputFname)
 
 	GPMAP.ProcessNeighbours()
 
 	{
 		// Dump GP to GP stats
-		wd, _ := os.Create("AgraGP2GP.csv")
+
+		wd, _ := os.Create(oututFname)
 		fmt.Fprintf(wd, "GPID, ClosestGP,ClosestGPdist, NGP1, NG2 , NGDist1, NGDist2")
 		for k, g := range GPMAP {
 			if g.IsValid {
@@ -54,13 +57,17 @@ func main() {
 	// 	fmt.Println()
 	// }
 
-	str := `importdata goaStatistics.csv;
-	vdata=ans.data;
-	cdfplot(vdata(:,3));hold all;
-	cdfplot(vdata(:,5));
-	importdata goaGP2GP.csv;
+	// str := `importdata goaStatistics.csv;
+	// vdata=ans.data;
+	// cdfplot(vdata(:,3));hold all;
+	// cdfplot(vdata(:,5));
+	// importdata goaGP2GP.csv;
+	// gdata=ans.data;
+	// cdfplot(gdata(:,3));`
+
+	str := fmt.Sprintf(`importdata %s;
 	gdata=ans.data;
-	cdfplot(gdata(:,3));`
+	cdfplot(gdata(:,3));`, oututFname)
 
 	fmt.Println(str)
 
