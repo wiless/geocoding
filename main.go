@@ -27,8 +27,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/kr/pretty"
 	"golang.org/x/net/context"
 	"googlemaps.github.io/maps"
 )
@@ -88,11 +88,11 @@ func main() {
 	}
 	check(err)
 
-	src, err := os.Open("kkinput.csv")
+	src, err := os.Open("118_Agra_gp.csv")
 
 	check(err)
 
-	fd, err := os.OpenFile("KK.csv", os.O_RDWR|os.O_APPEND, 0660)
+	fd, err := os.OpenFile("AgraGP.csv", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	check(err)
 
@@ -103,6 +103,7 @@ func main() {
 	rd := csv.NewReader(src)
 	rd.Comma = ','
 	rd.TrailingComma = true
+	rd.TrimLeadingSpace = true
 	indx := 1
 	for {
 
@@ -127,8 +128,8 @@ func main() {
 		// parseLatLng(*latlng, r)
 		// parseResultType(*resultType, r)
 		// parseLocationType(*locationType, r)
-
-		rowstr := getRecord(record[1], indx)
+		gpcode, _ := strconv.Atoi(strings.TrimSpace(record[0]))
+		rowstr := getRecord(record[1], indx, gpcode)
 		log.Printf("%v", rowstr)
 		wr.Write(rowstr)
 		wr.Flush()
@@ -139,7 +140,7 @@ func main() {
 	// pretty.Println(resp)
 }
 
-func getRecord(name string, id int) []string {
+func getRecord(name string, srno, gpcode int) []string {
 
 	r := &maps.GeocodingRequest{
 		Address:  *address,
@@ -153,7 +154,7 @@ func getRecord(name string, id int) []string {
 	// parseLatLng(*latlng, r)
 	// parseResultType(*resultType, r)
 	// parseLocationType(*locationType, r)
-	log.Println(r)
+
 	resp, err := client.Geocode(context.Background(), r)
 	// check(err)
 	if err != nil {
@@ -161,15 +162,16 @@ func getRecord(name string, id int) []string {
 	}
 
 	if len(resp) > 1 {
-		log.Printf("%s : MORE THAN ONE RESPONSE %d", name, len(resp))
+		log.Printf("%s : ======= ========  MORE THAN ONE RESPONSE %d", name, len(resp))
+		time.Sleep(1 * time.Second)
 	}
 	// var rec Record
 	var results []string
-	FIELDS := 5
+	FIELDS := 6
 	for i, r := range resp {
 		_ = i
 
-		pretty.Println("AddressComponents", r.AddressComponents)
+		// pretty.Println("AddressComponents", r.AddressComponents)
 		// fmt.Printf("\n %d : FormattedAddress %#v", i, r.FormattedAddress)
 		// pretty.Println("Geometry", r.Geometry)
 		// pretty.Printf("\n %d : PlaceID %#v", i, r.PlaceID)
@@ -184,19 +186,21 @@ func getRecord(name string, id int) []string {
 		// rec.FormattedAddress = r.FormattedAddress
 		// rec.Area = Area(r.Geometry.Viewport)
 		// row := csvutil.FormatRow(rec)
-		results = append(results, fmt.Sprintf("%d", id))
+		results = append(results, fmt.Sprintf("%d", srno))
 		results = append(results, r.FormattedAddress)
 		results = append(results, strings.Join(r.Types, ","))
 		results = append(results, r.Geometry.Location.String())
 		results = append(results, fmt.Sprintf("%f", Area(r.Geometry.Viewport)))
+		results = append(results, fmt.Sprintf("%d", gpcode))
 
 		return results
 	}
 	// rec.Location = "NIL"
 	// row := csvutil.FormatRow(rec)
 	empty := make([]string, FIELDS)
-	empty[0] = fmt.Sprintf("%d", id)
+	empty[0] = fmt.Sprintf("%d", srno)
 	empty[1] = "NIL"
+	empty[FIELDS-1] = fmt.Sprintf("%d", gpcode)
 	return empty
 }
 
