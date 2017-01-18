@@ -153,7 +153,7 @@ func getRecord(name string, id int) []string {
 	// parseLatLng(*latlng, r)
 	// parseResultType(*resultType, r)
 	// parseLocationType(*locationType, r)
-
+	log.Println(r)
 	resp, err := client.Geocode(context.Background(), r)
 	// check(err)
 	if err != nil {
