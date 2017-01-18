@@ -24,7 +24,7 @@ func main() {
 	// fmt.Println(Distance(reflat, reflat), "IS NAN ? ")
 	// fmt.Println(Distance(reflat, reflat2), "IS NAN ? ")
 
-	inputFname := "AgraGP.csv"
+	inputFname := os.Args[1]
 	oututFname := "GP2GP" + inputFname
 	GPMAP := ReadGPTable(inputFname)
 

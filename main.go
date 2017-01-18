@@ -74,8 +74,10 @@ func main() {
 	flag.Parse()
 
 	bytes, er := ioutil.ReadFile("mykey")
+
 	if er == nil {
-		*apiKey = string(bytes)
+
+		*apiKey = fmt.Sprintf("%s", bytes[0:39])
 
 	}
 	var err error
@@ -88,11 +90,13 @@ func main() {
 	}
 	check(err)
 
-	src, err := os.Open("118_Agra_gp.csv")
+	inputFileName := os.Args[1]
+	outputFileName := "Google" + inputFileName
+	src, err := os.Open(inputFileName)
 
 	check(err)
 
-	fd, err := os.OpenFile("AgraGP.csv", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+	fd, err := os.OpenFile(outputFileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	check(err)
 
